@@ -81,7 +81,7 @@ router.get("/:id", (req, res) => {
       `SELECT ii.*,
               COALESCE(ii.product_name, p.name, '[Deleted Product]') AS product_name,
               COALESCE(ii.purchase_price, p.purchase_price, 0) AS purchase_price,
-              (ii.sale_price - COALESCE(ii.purchase_price, p.purchase_price, 0)) * ii.qty AS profit
+               (ii.sale_price - COALESCE(ii.purchase_price, p.purchase_price, 0)) * ii.qty - ii.discount_amount AS profit
        FROM invoice_items ii
        LEFT JOIN products p ON p.id = ii.product_id
        WHERE ii.invoice_id = ?`,
