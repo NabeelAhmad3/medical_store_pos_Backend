@@ -16,6 +16,19 @@ router.get("/", (req, res) => {
     res.json(updated);
   });
 });
+router.get("/search", (req, res) => {
+  const q = req.query.q || '';
+  if (q.length < 4) return res.json([]);
+
+  db.all(
+    `SELECT * FROM products WHERE name LIKE ? AND quantity > 0 LIMIT 20`,
+    [`%${q}%`],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows);
+    }
+  );
+});
 
 router.get("/:id", (req, res) => {
   db.get("SELECT * FROM products WHERE id = ?", [req.params.id], (err, row) => {

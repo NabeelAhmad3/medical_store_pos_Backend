@@ -3,15 +3,13 @@ const db = require("../db");
 
 const router = express.Router();
 
-
-
 router.post("/", (req, res) => {
-  const { invoice_number, company_name, supplier_name, phone, payment_mode, date, total, items, saleMan_Address, saleMan } = req.body;
+  const { invoice_number, supplier_address, supplier_name, phone, payment_mode, date, total, items, saleMan_Address, saleMan } = req.body;
 
   db.run(
-    `INSERT INTO invoices(invoice_number, company_name, supplier_name, phone, payment_mode, date, total, saleMan_Address, saleMan)
+    `INSERT INTO invoices(invoice_number, supplier_address, supplier_name, phone, payment_mode, date, total, saleMan_Address, saleMan)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [invoice_number, company_name, supplier_name, phone, payment_mode, date, total, saleMan_Address, saleMan], // ✅ 9 columns, 9 values
+    [invoice_number, supplier_address, supplier_name, phone, payment_mode, date, total, saleMan_Address, saleMan],
     function (err) {
       if (err) return res.status(500).json({ error: err.message });
 
@@ -70,6 +68,47 @@ router.post("/", (req, res) => {
   );
 });
 
+
+router.get("/", (req, res) => {
+  db.all(
+    `SELECT * FROM invoices ORDER BY id DESC`,
+    [],
+    (err, invoices) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(invoices);
+    }
+  );
+});
+
+router.get("/pharmacies/list", (req, res) => {
+  db.all(
+    `SELECT supplier_name, phone, supplier_address
+     FROM invoices
+     WHERE supplier_name IS NOT NULL AND supplier_name != ''
+     GROUP BY supplier_name
+     ORDER BY MAX(id) DESC`,
+    [],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows);
+    }
+  );
+});
+
+router.get("/salesmen/list", (req, res) => {
+  db.all(
+    `SELECT saleMan, saleMan_Address
+     FROM invoices
+     WHERE saleMan IS NOT NULL AND saleMan != ''
+     GROUP BY saleMan
+     ORDER BY MAX(id) DESC`,
+    [],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows);
+    }
+  );
+});
 router.get("/:id", (req, res) => {
   const { id } = req.params;
 
@@ -93,16 +132,4 @@ router.get("/:id", (req, res) => {
     );
   });
 });
-
-router.get("/", (req, res) => {
-  db.all(
-    `SELECT * FROM invoices ORDER BY id DESC`,
-    [],
-    (err, invoices) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json(invoices);
-    }
-  );
-});
-
 module.exports = router;

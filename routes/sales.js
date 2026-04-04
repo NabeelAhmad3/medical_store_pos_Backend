@@ -3,20 +3,19 @@ const db = require("../db");
 
 const router = express.Router();
 
-
 router.get("/daily", (req, res) => {
   const today = new Date().toISOString().split("T")[0];
 
   db.all(
     `SELECT invoices.date,
-            products.name,
+            COALESCE(invoice_items.product_name, '[Deleted Product]') AS name,
             invoice_items.qty,
             invoice_items.sale_price,
-            products.purchase_price,
-            ((invoice_items.sale_price - products.purchase_price) * invoice_items.qty) - invoice_items.discount_amount AS profit
+            invoice_items.discount_amount,
+            COALESCE(invoice_items.purchase_price, 0) AS purchase_price,
+            (invoice_items.sale_price - COALESCE(invoice_items.purchase_price, 0)) * invoice_items.qty - invoice_items.discount_amount AS profit
      FROM invoice_items
      JOIN invoices ON invoices.id = invoice_items.invoice_id
-     LEFT JOIN products ON products.id = invoice_items.product_id 
      WHERE date(invoices.date) = date(?)`,
     [today],
     (err, rows) => {
@@ -33,14 +32,14 @@ router.get("/weekly", (req, res) => {
 
   db.all(
     `SELECT invoices.date,
-            products.name,
+            COALESCE(invoice_items.product_name, '[Deleted Product]') AS name,
             invoice_items.qty,
             invoice_items.sale_price,
-            products.purchase_price,
-            ((invoice_items.sale_price - products.purchase_price) * invoice_items.qty) - invoice_items.discount_amount AS profit
+            invoice_items.discount_amount,
+            COALESCE(invoice_items.purchase_price, 0) AS purchase_price,
+            (invoice_items.sale_price - COALESCE(invoice_items.purchase_price, 0)) * invoice_items.qty - invoice_items.discount_amount AS profit
      FROM invoice_items
      JOIN invoices ON invoices.id = invoice_items.invoice_id
-     LEFT JOIN products ON products.id = invoice_items.product_id 
      WHERE date(invoices.date) BETWEEN date(?) AND date(?)`,
     [lastWeek.toISOString().split("T")[0], today.toISOString().split("T")[0]],
     (err, rows) => {
@@ -55,14 +54,14 @@ router.get("/monthly", (req, res) => {
 
   db.all(
     `SELECT invoices.date,
-            products.name,
+            COALESCE(invoice_items.product_name, '[Deleted Product]') AS name,
             invoice_items.qty,
             invoice_items.sale_price,
-            products.purchase_price,
-            ((invoice_items.sale_price - products.purchase_price) * invoice_items.qty) - invoice_items.discount_amount AS profit
+            invoice_items.discount_amount,
+            COALESCE(invoice_items.purchase_price, 0) AS purchase_price,
+            (invoice_items.sale_price - COALESCE(invoice_items.purchase_price, 0)) * invoice_items.qty - invoice_items.discount_amount AS profit
      FROM invoice_items
      JOIN invoices ON invoices.id = invoice_items.invoice_id
-     LEFT JOIN products ON products.id = invoice_items.product_id 
      WHERE strftime('%Y-%m', invoices.date) = strftime('%Y-%m', ?)`,
     [today.toISOString()],
     (err, rows) => {

@@ -36,14 +36,13 @@ db.serialize(() => {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     invoice_number TEXT,
     supplier_name TEXT,
-    suplier_address TEXT,
+    supplier_address TEXT,
     phone TEXT,
     saleMan TEXT,
     saleMan_Address TEXT,
     payment_mode TEXT,
     date TEXT,
-    total INTEGER,
-    company_name TEXT
+    total INTEGER
   )`);
 
   db.run(`CREATE TABLE IF NOT EXISTS invoice_items(
